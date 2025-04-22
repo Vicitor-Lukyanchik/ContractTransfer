@@ -1,0 +1,2 @@
+2)  Исправить файл application.properties, поправить логин и пароль
+3) В DbCredentials

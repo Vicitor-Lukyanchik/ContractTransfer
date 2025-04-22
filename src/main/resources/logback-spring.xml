@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Настройка RollingFileAppender для info.log -->
+<!--    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+<!--        <file>C:\ContractTransfer\info.log</file>-->
+<!--        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
+<!--            &lt;!&ndash; Формат имени ротированного файла &ndash;&gt;-->
+<!--            <fileNamePattern>C:\ContractTransfer\logs\info-%d{yyyy-MM-dd}.log</fileNamePattern>-->
+<!--            &lt;!&ndash; Хранить только последние 3 дня &ndash;&gt;-->
+<!--            <maxHistory>7</maxHistory>-->
+<!--        </rollingPolicy>-->
+<!--        <encoder>-->
+<!--            <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>C:\ContractTransfer\info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Формат имени ротированного файла -->
+            <fileNamePattern>C:\ContractTransfer\logs\info-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- Хранить только последние 7 дней -->
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
+        </encoder>
+        <!-- Фильтр для исключения стектрейса -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <!-- Логгер для DBF -->
+    <logger name="com.example.transfer.dbf" level="info" additivity="false">
+        <appender-ref ref="FILE"/> <!-- Запись в info.log -->
+    </logger>
+
+    <!-- Логгер для DBF -->
+    <logger name="com.example.transfer.s02015" level="info">
+        <appender-ref ref="FILE"/> <!-- Запись в info.log -->
+    </logger>
+
+    <!-- Логгер для основного приложения -->
+    <logger name="com.example.transfer" level="info" additivity="false">
+        <appender-ref ref="CONSOLE"/> <!-- Вывод в консоль -->
+    </logger>
+</configuration>

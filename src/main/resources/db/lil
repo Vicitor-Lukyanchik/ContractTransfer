@@ -1,0 +1,265 @@
+integer li_kol, li_type, li_firm,li_zap,li_status,li_sql,li_oper,li_tpack_id,Net,li_exp,li_imp
+integer li_rasch_id,li_vdoc_id,li_cur_id,li_isp_id,li_sogl,li_specif,li_pri,li_co_day,li_pr_adv,li_dep,li_polz_exit,li_polz_exp,li_polz_urb
+long ll_zap, ll_kol_str, k,j,ll_id,ll_all_zap,ll_firm_ind,ll_zap_bar,ll_ins,ll_upd
+long li_dog_id,ll_firm_id,ll_spec_id,ll_sogl_id,ll_opl_id,ll_temp,ll_naim_id,ll_tpack_id,li_ora_count
+decimal ldec_kol,ldec_sumd,ldec_shtr,ldec_nds,ldec_curs,ldec_ves
+string ls_im,ls_source,ls_target,ls_temp,ls_naim
+string ls_them,ls_otv,ls_day,ls_nd,ls_sluzba,ls_isp
+date ld_dath,ld_dbeg,ld_dend,ld_dopl,ld_dotgr,ld_dreg,ld_ded,ld_temp,ld_prod
+datetime ldt_temp
+if gi_user_dost = 2  then
+	MessageBox("Импорт данных","Нет прав!  -  Доступ по чтению!")
+else
+// проверить последний импорт
+  SELECT  max("IMP_DBF"."IMP_ID")
+    INTO :ll_id
+    FROM "IMP_DBF"
+      ;
+   SELECT "IMP_DBF"."IMP_DNEW",
+         "IMP_DBF"."IMP_POLZ"
+    INTO :ldt_temp,  :ls_otv
+    FROM "IMP_DBF"
+   WHERE "IMP_DBF"."IMP_ID" = :ll_id   ;
+
+ls_temp = "Последний импорт был сделан:  " + string(date(ldt_temp))+" в "+string(time(ldt_temp))+" ~r~n  Пользователем "+ls_otv+"! "+"~r~n        Хотите повторить импорт ?"
+
+Net = MessageBox("Импорт данных", ls_temp, &
+    Exclamation!, OKCancel!, 2)
+
+IF Net = 1 THEN
+datastore lds_imp
+transaction tr_cl
+pointer oldpointer // Declares a pointer-указатель. для мыши
+oldpointer = SetPointer(HourGlass!)     // будут песоч.часы на экране
+cb_2.enabled = false
+
+tr_cl = create transaction
+tr_cl.DBMS			= ProfileString("02015.ini", "Database2", "DBMS"," ")
+tr_cl.autocommit	= true
+tr_cl.DBParm		= ProfileString("02015.ini", "Database2", "DbParm",	" ")
+ls_source = ProfileString("02015.ini", "Database2", "source",	" ")
+ls_target = ProfileString("02015.ini", "Database2", "target",	" ")
+connect using tr_cl;
+IF tr_cl.SqlCode <> 0 THEN
+	error.uf_sqlerror()
+	destroy tr_cl
+	 SetPointer(oldpointer)
+	 MessageBox("Импорт данных"," Нет связи с *.dbf!")
+	return 0
+END IF
+// Импорт таблицы договоров из .dbf в Oracle
+ld_temp = today()
+li_kol = 0
+li_zap = 0
+lds_imp = CREATE datastore
+lds_imp.dataobject = "dw_dogov"
+lds_imp.settransobject (tr_cl)
+lds_imp.Retrieve ()
+ll_zap_bar = 100
+ll_zap = 1
+li_oper = 1
+ll_ins = 0
+ll_upd = 0
+ll_all_zap = lds_imp.Rowcount ()
+ll_kol_str  = ll_all_zap
+if gi_user_dost = 1 then
+  w_app_frame.iuoProgressBar.maxPosition = ll_kol_str
+  w_app_frame.iuoProgressBar.setStep = 1
+ elseif gi_user_dost = 3 then
+   w_app_frm_isp.iuoProgressBar.maxPosition = ll_kol_str
+   w_app_frm_isp.iuoProgressBar.setStep = 1
+ end if
+//vpb_1.Position = 0
+//vpb_1.maxPosition = ll_kol_str
+//vpb_1.setStep = 1
+ll_zap_bar = ll_kol_str
+//ls_im = 'set transaction use rollback segment RB5' //когда не хватает rollback, для 7 oracle
+//execute immediate :ls_im;
+
+// Присвоить всем договорам оперативность 0
+  UPDATE "DOGOVOR"
+     SET "DOG_OPERABLE" = 0  ;
+If ll_all_zap > 0 then
+   li_zap = 0
+	if gi_user_dost = 1 then
+		   w_app_frame.iuoProgressBar.Position = 0
+	elseif gi_user_dost = 3 then
+		   w_app_frm_isp.iuoProgressBar.Position = 0
+	end if
+	st_1.Text = "Договора"
+  // st_2.Text = lds_imp.dataobject+" Запись .dbf ¦ "
+   st_2.Text = "Запись в   .dbf ¦ "
+   st_4.Text = "Запись в Oracle ¦ "
+//	ls_count_name_e = " "
+   FOR k = ll_zap to ll_all_zap
+		yield() //  для других процессов во время импорт
+     	 li_dog_id     = lds_imp.Object.D_KD[k]
+		 ls_them = lds_imp.Object.D_KPO[k]
+		 ls_otv  = lds_imp.Object.D_OTV[k]
+		 li_rasch_id = lds_imp.Object.D_OR_AC[k]
+		 li_vdoc_id = lds_imp.Object.OT_HR[k]
+		 li_cur_id = lds_imp.Object.D_CUR[k]
+		 ls_isp = lds_imp.Object.D_ISP[k]
+		 li_isp_id = integer(ls_isp)
+		 li_sogl = lds_imp.Object.D_SOGL[k]
+		 li_specif = lds_imp.Object.D_SPECIF[k]
+		 li_pri = lds_imp.Object.D_PR[k]
+		 li_co_day = lds_imp.Object.D_CO_DAY[k]
+		 li_pr_adv = lds_imp.Object.D_PR_ADV[k]
+		 ldec_sumd = lds_imp.Object.D_SUMD[k]
+		 ldec_shtr = lds_imp.Object.D_STR[k]
+		 ls_day = lds_imp.Object.D_DAY[k]
+		 ls_nd = lds_imp.Object.D_ND[k]
+		 ls_sluzba = lds_imp.Object.D_OTD[k]
+		 //li_dep = S11000.GetDepId(:ls_sluzba)
+  		 li_dep = get_dep_id(ls_sluzba)
+		 ld_dath = lds_imp.Object.D_DATH[k]
+		 ld_dbeg = lds_imp.Object.D_DATHO[k]
+		 ld_dend = lds_imp.Object.D_DATE[k]
+		 ld_dopl = lds_imp.Object.D_DAT_OPL[k]
+		 ld_dotgr = lds_imp.Object.D_OTGR[k]
+		 ld_dreg = lds_imp.Object.D_REG[k]
+		 ld_ded = lds_imp.Object.D_DAT_ED[k]
+		 ll_firm_id = lds_imp.Object.D_KFIRM[k]
+		 ll_tpack_id = lds_imp.Object.D_PACK[k]
+		 ld_prod = lds_imp.Object.PORD_SROK[k]
+		 li_kol++
+       st_3.Text = string(li_kol)
+	if not isnull(li_dog_id)	 then
+		 SELECT "DOGOVOR"."DOG_ID"
+		 INTO :li_ora_count
+		 FROM "DOGOVOR"
+		 WHERE "DOGOVOR"."DOG_ID" = :li_dog_id ;
+		 li_sql = SQLCA.sqlcode
+	    If li_sql =0 then
+//        Обнoвление данных из DBF
+          UPDATE "DOGOVOR"
+           SET "VDOC_ID" = :li_vdoc_id,
+               "DOG_PRI" = :li_pri,
+               "DOG_ND" = :ls_nd,
+               "DOG_DATH" = :ld_dath,
+               "DOG_REG" = :ld_dreg,
+               "DOG_DBEG" = :ld_dbeg,
+               "DOG_DEND" = :ld_dend,
+               "FIRM_ID" = :ll_firm_id,
+               "CUR_ID" = :li_cur_id,
+               "DOG_SUMD" = :ldec_sumd,
+               "DOG_THEM" = :ls_them,
+               "DOG_SLUZBA" = :ls_sluzba,
+               "DOG_OTV" = :ls_otv,
+               "DOG_SOGL" = :li_sogl,
+               "DOG_SPECIF" = :li_specif,
+               "RASCH_ID" = :li_rasch_id,
+               "DOG_CO_DAY" = :li_co_day,
+               "DOG_DAY" = :ls_day,
+               "DOG_PR_ADV" = :li_pr_adv,
+               "DOG_SHTR" = :ldec_shtr,
+               "DOG_DOTGR" = :ld_dotgr,
+               "DOG_DOPL" = :ld_dopl,
+               "DOG_ISP_ID" = :li_isp_id,
+               "DOG_DAT_ED" = :ld_ded,
+               "DOG_OPERABLE" = :li_oper,
+			  "TPACK_ID" = :ll_tpack_id,
+					"DEP_ID" = :li_dep,
+					"PROD_SPOK" = : ld_prod
+         WHERE "DOGOVOR"."DOG_ID" = :li_dog_id ;
+  			If SQLCA.sqlcode = -1 then
+		       error.uf_sqlerror ()
+             rollback;
+				 ll_upd = 0
+					if gi_user_dost = 1 then
+					   w_app_frame.iuoProgressBar.Position = 0
+					elseif gi_user_dost = 3 then
+					   w_app_frm_isp.iuoProgressBar.Position = 0
+					end if
+        	End If
+			ll_upd++
+    	 ElseIf li_sql = 100 then
+//        Дозапись данных из DBF
+  			  INSERT INTO "DOGOVOR"
+	         ( "DOG_ID",
+   	        "VDOC_ID",
+      	     "DOG_PRI",
+	           "DOG_ND",
+	           "DOG_DATH",
+   	        "DOG_REG",
+      	     "DOG_DBEG",
+         	  "DOG_DEND",
+	           "FIRM_ID",
+   	        "CUR_ID",
+      	     "DOG_SUMD",
+	        	  "DOG_THEM",
+   	        "DOG_SLUZBA",
+	           "DOG_OTV",
+   	        "DOG_SOGL",
+      	     "DOG_SPECIF",
+         	  "RASCH_ID",
+	           "DOG_CO_DAY",
+   	        "DOG_DAY",
+      	     "DOG_PR_ADV",
+	           "DOG_SHTR",
+   	        "DOG_DOTGR",
+      	     "DOG_DOPL",
+         	  "DOG_ISP_ID",
+	           "DOG_DAT_ED",
+				  "TPACK_ID" ,
+	           "DOG_OPERABLE",
+				  "PROD_SPOK")
+	  		VALUES (:li_dog_id,
+					  :li_vdoc_id,
+		           :li_pri,
+		           :ls_nd,
+		           :ld_dath,
+		           :ld_dreg,
+      		     :ld_dbeg,
+		           :ld_dend,
+      		     :ll_firm_id,
+		           :li_cur_id,
+      		     :ldec_sumd,
+		           :ls_them,
+      		     :ls_sluzba,
+		           :ls_otv,
+      		     :li_sogl,
+		           :li_specif,
+		           :li_rasch_id,
+      		     :li_co_day,
+		           :ls_day,
+      		     :li_pr_adv,
+		           :ldec_shtr,
+      		     :ld_dotgr,
+		           :ld_dopl,
+		           :li_isp_id,
+      		     :ld_ded,
+				  :ll_tpack_id,
+		           :li_oper,
+				: ld_prod )  ;
+			   If SQLCA.sqlcode = -1 then
+		         error.uf_sqlerror ()
+               rollback;
+					ll_ins = 0
+					if gi_user_dost = 1 then
+					   w_app_frame.iuoProgressBar.Position = 0
+					elseif gi_user_dost = 3 then
+					   w_app_frm_isp.iuoProgressBar.Position = 0
+					end if
+        	   End If
+				ll_ins++
+		 ElseIf li_sql =-1 then
+		        error.uf_sqlerror ()
+              rollback;
+					if gi_user_dost = 1 then
+					   w_app_frame.iuoProgressBar.Position = 0
+					elseif gi_user_dost = 3 then
+					   w_app_frm_isp.iuoProgressBar.Position = 0
+					end if
+  	    End If
+		 li_zap++
+       st_5.Text = string(li_zap)
+	   if gi_user_dost = 1 then
+		 w_app_frame.event trigger ue_updateprogressbar ( )
+       elseif gi_user_dost = 3 then
+		  w_app_frm_isp.event trigger ue_updateprogressbar ( )
+       end if
+	end if // конец пров на null
+//		 vpb_1.StepIt()
+	NEXT
