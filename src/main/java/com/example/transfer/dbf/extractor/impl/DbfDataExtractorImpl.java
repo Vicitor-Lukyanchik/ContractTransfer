@@ -4,6 +4,7 @@ import com.example.transfer.dbf.domain.DbfColumn;
 import com.example.transfer.dbf.domain.DbfTable;
 import com.example.transfer.dbf.exception.DbfException;
 import com.example.transfer.dbf.extractor.DbfDataExtractor;
+import com.linuxense.javadbf.DBFException;
 import com.linuxense.javadbf.DBFField;
 import com.linuxense.javadbf.DBFReader;
 import org.springframework.stereotype.Component;
@@ -39,35 +40,41 @@ public class DbfDataExtractorImpl implements DbfDataExtractor {
             reader.setCharactersetName(DOS_ENCODING);
 
             // Получаем метаданные столбцов
-            columns = readDbfColumns(reader);
-            rows = readDbfRows(reader, columns);
-        } catch (Exception e) {
-            throw new DbfException("Ошибка при чтении файла: " + path + "\n" + e.getMessage(), e);
+            columns = readDbfColumns(reader, path);
+            rows = readDbfRows(reader, columns, path);
+        } catch (DbfException e) {
+            throw new DbfException(e.getMessage());
+        } catch (Exception e){
+            throw new DbfException("Ошибка при чтении файла: " + path);
         }
 
         return DbfTable.builder().columns(columns).rows(rows).build();
     }
 
-    private List<DbfColumn> readDbfColumns(DBFReader reader) throws Exception {
-        List<DbfColumn> columns = new ArrayList<>();
-        int fieldCount = reader.getFieldCount();
+    private List<DbfColumn> readDbfColumns(DBFReader reader, String path) {
+        try {
+            List<DbfColumn> columns = new ArrayList<>();
+            int fieldCount = reader.getFieldCount();
 
-        // Получаем метаданные столбцов
-        for (int i = 0; i < fieldCount; i++) {
-            DBFField field = reader.getField(i);
-            byte dataType = field.getDataType();
-            char typeChar = (char) dataType;
-            String type = dbfTypeMapping.getOrDefault(typeChar, UNKNOWN);
-            columns.add(DbfColumn.builder()
-                    .name(field.getName())
-                    .type(type)
-                    .build());
+            // Получаем метаданные столбцов
+            for (int i = 0; i < fieldCount; i++) {
+                DBFField field = reader.getField(i);
+                byte dataType = field.getDataType();
+                char typeChar = (char) dataType;
+                String type = dbfTypeMapping.getOrDefault(typeChar, UNKNOWN);
+                columns.add(DbfColumn.builder()
+                        .name(field.getName())
+                        .type(type)
+                        .build());
+            }
+            return columns;
+        } catch (DBFException e) {
+            throw new DbfException("Ошибка при чтении файла: " + path);
         }
 
-        return columns;
     }
 
-    private List<Map<String, Object>> readDbfRows(DBFReader reader, List<DbfColumn> columns) throws Exception {
+    private List<Map<String, Object>> readDbfRows(DBFReader reader, List<DbfColumn> columns, String path) throws Exception {
         List<Map<String, Object>> rows = new ArrayList<>();
         int fieldCount = columns.size();
         int rowNumber = 0; // Счетчик строк
@@ -83,7 +90,7 @@ public class DbfDataExtractorImpl implements DbfDataExtractor {
                 }
                 rows.add(row);
             } catch (Exception e) {
-                throw new DbfException("Ошибка при чтении строки №" + rowNumber + " файла: " + e.getMessage(), e);
+                throw new DbfException("Ошибка при чтении строки №" + rowNumber + " файла: " + path, e);
             }
         }
 

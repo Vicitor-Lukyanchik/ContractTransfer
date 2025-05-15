@@ -6,6 +6,7 @@ import com.example.transfer.dbf.annotation.MigrationOrder;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @Entity
@@ -22,10 +23,12 @@ public class VidDoc {
     @Id
     @Column(name = "vdoc_id")
     @DbfField("ID_DOC")
+    @NotNull(message = "(Oracle: vdoc_id) не может быть null")
     private Long vdocId;
 
     @Column(name = "vdoc_naim")
     @DbfField("NAIM_DOC")
+    @NotNull(message = "(Oracle: vdoc_naim) не может быть null")
     private String vdocNaim;
 
     @Override

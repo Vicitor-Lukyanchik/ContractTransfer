@@ -6,6 +6,7 @@ import com.example.transfer.dbf.annotation.MigrationOrder;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @Entity
@@ -21,10 +22,12 @@ public class PRasch {
     @Id
     @Column(name = "rasch_id")
     @DbfField("RASCH_ID")
+    @NotNull(message = "(Oracle: rasch_id) не может быть null")
     private Long raschId;
 
     @Column(name = "rasch_naim")
     @DbfField("RASCH_NAIM")
+    @NotNull(message = "(Oracle: rasch_naim) не может быть null")
     private String raschNaim;
 
     @Column(name = "rasch_imp")

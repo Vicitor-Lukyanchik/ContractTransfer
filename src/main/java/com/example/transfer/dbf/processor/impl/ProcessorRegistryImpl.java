@@ -40,8 +40,7 @@ public class ProcessorRegistryImpl implements ProcessorRegistry {
                 return priorityAnnotation.value();
             }
         } catch (Exception ignored) {
-            // Ловим любые исключения и возвращаем 0
         }
-        return 0; // По умолчанию приоритет равен 0
+        return 0;
     }
 }

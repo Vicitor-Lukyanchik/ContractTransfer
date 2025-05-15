@@ -7,6 +7,7 @@ import com.example.transfer.s02015.annotation.DepId;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @Entity
@@ -23,14 +24,17 @@ public class Polz02015 {
     @Column(name = "polz_id")
     @DbfField("P_KUSER")
     @CharToNumeric
+    @NotNull(message = "(Oracle: polz_id) не может быть null")
     private Long polzId;
 
     @Column(name = "polz_name")
     @DbfField("P_FAM")
+    @NotNull(message = "(Oracle: polz_name) не может быть null")
     private String polzName;
 
     @Column(name = "polz_fun")
     @DbfField("P_FUN")
+    @NotNull(message = "(Oracle: polz_fun) не может быть null")
     private Boolean polzFun;
 
     @Column(name = "dep_id")
@@ -43,6 +47,7 @@ public class Polz02015 {
 
     @Column(name = "polz_adm")
     @DbfField("P_ADM")
+    @NotNull(message = "(Oracle: polz_adm) не может быть null")
     private Boolean polzAdm;
 
     @Column(name = "polz_exit")

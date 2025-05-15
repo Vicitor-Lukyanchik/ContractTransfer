@@ -10,6 +10,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.sql.Date;
 import java.util.Objects;
 
@@ -26,19 +27,23 @@ public class DogoSogl {
 
     @Column(name = "dog_id")
     @DbfField("D_KD")
+    @NotNull(message = "(Oracle: dog_id)Номер договора не может быть null")
     private Long dogId;
 
     @Id
     @Column(name = "sogl_id")
     @DbfField("D_KSO")
+    @NotNull(message = "(Oracle: sogl_id) не может быть null")
     private Long soglId;
 
     @Column(name = "sogl_nd")
     @DbfField("D_ND")
+    @NotNull(message = "(Oracle: sogl_nd) не может быть null")
     private String soglNd;
 
     @Column(name = "sogl_dath")
     @DbfField("D_DATH")
+    @NotNull(message = "(Oracle: sogl_dath) не может быть null")
     private Date soglDath;
 
     @Column(name = "sogl_reg")
@@ -55,6 +60,7 @@ public class DogoSogl {
 
     @Column(name = "firm_id")
     @DbfField("D_KFIRM")
+    @NotNull(message = "Id фирмы не может быть null")
     private Long firmId;
 
     @Column(name = "cur_id")

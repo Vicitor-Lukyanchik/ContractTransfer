@@ -1,11 +1,12 @@
 package com.example.transfer.s02015.entity;
 
 import com.example.transfer.dbf.annotation.*;
-import com.example.transfer.s02015.annotation.DefaultValue;
+import com.example.transfer.dbf.annotation.DefaultValue;
 import com.example.transfer.s02015.annotation.DepId;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.sql.Date;
 import java.util.Objects;
 
@@ -24,6 +25,7 @@ public class Dogovor {
     @Id
     @Column(name = "dog_id")
     @DbfField("D_KD")
+    @NotNull(message = "(Oracle: dog_id) Номер договора не может быть null")
     private Long dogId;
 
     @Column(name = "vdoc_id")
@@ -132,6 +134,7 @@ public class Dogovor {
     private Integer dogIspId;
 
     @Column(name = "dog_claim")
+    @Transient
     private Long dogClaim;
 
     @Column(name = "deliv_id")

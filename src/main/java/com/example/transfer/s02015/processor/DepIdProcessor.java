@@ -1,10 +1,10 @@
 package com.example.transfer.s02015.processor;
 
 import com.example.transfer.dbf.exception.ProcessException;
-import com.example.transfer.s02015.annotation.DepId;
 import com.example.transfer.dbf.processor.FieldProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.example.transfer.dbf.util.ProcessorUtils;
+import com.example.transfer.s02015.annotation.DepId;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
@@ -16,9 +16,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @Component
+@RequiredArgsConstructor
 public class DepIdProcessor implements FieldProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(DepIdProcessor.class);
+    private final ProcessorUtils processorUtils;
 
     @Override
     public boolean supports(Annotation annotation) {
@@ -27,15 +28,14 @@ public class DepIdProcessor implements FieldProcessor {
 
     @Override
     public Object process(Field field, Object entity, Connection connection) throws IllegalAccessException {
-        if (connection == null) {
-            throw new IllegalArgumentException("Connection required for this processor.");
-        }
-
         try {
+            if (connection == null) {
+                throw new ProcessException("Неудаётся подключиться к базе");
+            }
             Annotation annotation = field.getAnnotation(DepId.class);
 
             if (annotation == null) {
-                throw new IllegalArgumentException("Annotation not found on field: " + field.getName());
+                throw new ProcessException("Аннотация не найдена в поле: " + field.getName() + "=" + field.get(entity));
             }
 
             String sourceFieldName = getAnnotationValue(annotation);
@@ -47,7 +47,7 @@ public class DepIdProcessor implements FieldProcessor {
             return getDepartmentId(asSluzba, connection);
 
         } catch (NoSuchFieldException | SQLException | NoSuchMethodException | InvocationTargetException e) {
-            throw new ProcessException("Ошибка при обработке поля: " + e.getMessage());
+            throw new ProcessException(processorUtils.buildErrorMessage(entity, field, "Ошибка при обработке DEP_ID. " + e.getMessage()));
         }
     }
 
@@ -59,7 +59,6 @@ public class DepIdProcessor implements FieldProcessor {
 
     private Integer getDepartmentId(String asSluzba, Connection connection) throws SQLException {
         if (asSluzba == null || asSluzba.isEmpty()) return 0;
-
         int liKod = 0;
 
         if (asSluzba.length() >= 4 && asSluzba.substring(2, 4).equals("00")) {
@@ -73,6 +72,8 @@ public class DepIdProcessor implements FieldProcessor {
                 if (resultSet.next()) {
                     liKod = resultSet.getInt("DEP_ID");
                 }
+            } catch (Exception e) {
+                throw new ProcessException("Ошибка при запросе: " + query1);
             }
 
         } else if ("2911".equals(asSluzba)) {
@@ -85,6 +86,8 @@ public class DepIdProcessor implements FieldProcessor {
                 if (resultSet.next()) {
                     liKod = resultSet.getInt("DEP_ID");
                 }
+            } catch (Exception e) {
+                throw new ProcessException("Ошибка при запросе: " + query2);
             }
         }
 

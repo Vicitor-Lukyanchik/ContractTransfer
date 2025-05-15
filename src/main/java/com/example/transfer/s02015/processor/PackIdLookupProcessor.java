@@ -3,11 +3,9 @@ package com.example.transfer.s02015.processor;
 import com.example.transfer.dbf.annotation.ProcessingOrder;
 import com.example.transfer.dbf.exception.ProcessException;
 import com.example.transfer.dbf.processor.FieldProcessor;
-import com.example.transfer.dbf.service.impl.DbfMigrationSchedulerImpl;
+import com.example.transfer.dbf.util.ProcessorUtils;
 import com.example.transfer.s02015.annotation.PackIdLookup;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
@@ -24,7 +22,7 @@ import java.sql.SQLException;
 @ProcessingOrder(20)
 public class PackIdLookupProcessor implements FieldProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(PackIdLookupProcessor.class);
+    private final ProcessorUtils processorUtils;
 
     @Override
     public boolean supports(Annotation annotation) {
@@ -33,14 +31,14 @@ public class PackIdLookupProcessor implements FieldProcessor {
 
     @Override
     public Object process(Field field, Object entity, Connection connection) throws IllegalAccessException {
-        if (connection == null) {
-            throw new ProcessException("Connection required for this processor.");
-        }
-
         try {
+            if (connection == null) {
+                throw new ProcessException("Неудаётся подключиться к базе");
+            }
+
             PackIdLookup annotation = field.getAnnotation(PackIdLookup.class);
             if (annotation == null) {
-                throw new ProcessException("Annotation @PackIdLookup not found on field: " + field.getName());
+                throw new ProcessException("Аннотация не найдена в поле: " + field.getName() + "=" + field.get(entity));
             }
 
             Long specifId = getFieldValue(entity, "specifId");
@@ -49,8 +47,8 @@ public class PackIdLookupProcessor implements FieldProcessor {
             Double vesUnit = roundValue(getFieldValue(entity, "vesUnit"));
 
             if (specifId == null || dogId == null || kodm == null || vesUnit == null) {
-                logger.error("D_KD:" + dogId + "; S_ID:" + specifId + "; KODM:" + kodm + "; VES_UNIT:" + vesUnit);
-                throw new ProcessException("Не все необходимые поля заполнены для обработки аннотации @PackIdLookup. (Packing)");
+                String fieldData = "Поля: D_KD = " + dogId + "; S_ID = " + specifId + "; KODM = " + kodm + "; VES_UNIT = " + vesUnit;
+                throw new ProcessException("Не все необходимые поля заполнены. " + fieldData);
             }
 
             Long packId = fetchPackIdFromDatabase(connection, specifId, dogId, kodm, vesUnit);
@@ -60,7 +58,7 @@ public class PackIdLookupProcessor implements FieldProcessor {
 
             return packId;
         } catch (Exception e) {
-            throw new ProcessException("Ошибка при обработке аннотации @PackIdLookup: " + e.getMessage());
+            throw new ProcessException(processorUtils.buildErrorMessage(entity, field,e.getMessage()));
         }
     }
 
@@ -99,6 +97,6 @@ public class PackIdLookupProcessor implements FieldProcessor {
                 return packId;
             }
         }
-        throw new ProcessException("Ошибка при обработке аннотации @PackIdLookup (Packing)");
+        throw new ProcessException("Ошибка при запросе: " + query);
     }
 }

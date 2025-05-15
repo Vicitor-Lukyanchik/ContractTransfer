@@ -2,10 +2,9 @@ package com.example.transfer.s02015.processor;
 
 import com.example.transfer.dbf.exception.ProcessException;
 import com.example.transfer.dbf.processor.FieldProcessor;
+import com.example.transfer.dbf.util.ProcessorUtils;
 import com.example.transfer.s02015.annotation.NaimIdLookup;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
@@ -23,6 +22,8 @@ public class NaimIdLookupProcessor implements FieldProcessor {
     private static final String LOOKUP_COLUMN = "NAIM_KOD_OLD";
     private static final String RESULT_COLUMN = "NAIM_ID";
 
+    private final ProcessorUtils processorUtils;
+
     @Override
     public boolean supports(Annotation annotation) {
         return annotation instanceof NaimIdLookup;
@@ -31,20 +32,20 @@ public class NaimIdLookupProcessor implements FieldProcessor {
     @Override
     public Object process(Field field, Object entity, Connection connection) throws IllegalAccessException {
         if (connection == null) {
-            throw new IllegalArgumentException("Connection required for this processor.");
+            throw new ProcessException("Неудаётся подключиться к базе");
         }
 
         try {
             NaimIdLookup annotation = field.getAnnotation(NaimIdLookup.class);
             if (annotation == null) {
-                throw new ProcessException("Annotation @NaimIdLookup not found on field: " + field.getName());
+                throw new ProcessException("Аннотация не найдена в поле: " + field.getName() + "=" + field.get(entity));
             }
 
             String sourceFieldName = annotation.sourceField();
             Object sourceFieldValue = getSourceFieldValue(entity, sourceFieldName);
 
             if (sourceFieldValue == null) {
-                throw new ProcessException("Source field value is null for field: " + field.getName());
+                throw new ProcessException("Значение исходного поля равно null для поля " + field.getName());
             }
 
             Long resultValue = fetchFromDatabase(connection, sourceFieldValue.toString());
@@ -54,7 +55,7 @@ public class NaimIdLookupProcessor implements FieldProcessor {
 
             return resultValue;
         } catch (Exception e) {
-            throw new ProcessException("Ошибка при обработке аннотации @NaimIdLookup: " + e.getMessage());
+            throw new ProcessException(processorUtils.buildErrorMessage(entity, field,e.getMessage()));
         }
     }
 
@@ -75,6 +76,6 @@ public class NaimIdLookupProcessor implements FieldProcessor {
                 return resultSet.getLong(RESULT_COLUMN);
             }
         }
-        throw new ProcessException("Ошибка при обработке аннотации @NaimIdLookup: ");
+        throw new ProcessException("Ошибка при запросе: " + query);
     }
 }

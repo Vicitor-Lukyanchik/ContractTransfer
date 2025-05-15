@@ -1,2 +1,6 @@
-2)  Исправить файл application.properties, поправить логин и пароль
-3) В DbCredentials
+Доступы которые необходимы для работы программы:
+1) L:\W_BUH\МНС\Плательщик V30\description (полный)
+2) L:\W_CANC\DOGOV1\BAZA
+3) L:\W_BUH\BUH_SPR\NSI
+4) L:\W_USERS\STREAMS\jdk-11 (полный)
+

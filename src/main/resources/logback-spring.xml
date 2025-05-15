@@ -1,31 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+
+    <springProperty name="LOG_FILE_PATH" source="logging.file.path" />
+    <springProperty name="LOG_FILE_NAME" source="logging.file.name" />
+    <springProperty name="LOG_MAX_HISTORY" source="logging.file.maxHistory" />
+    <springProperty name="DBF_LOGGER_PACKAGE" source="scan.base.package" />
+
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Настройка RollingFileAppender для info.log -->
-<!--    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
-<!--        <file>C:\ContractTransfer\info.log</file>-->
-<!--        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
-<!--            &lt;!&ndash; Формат имени ротированного файла &ndash;&gt;-->
-<!--            <fileNamePattern>C:\ContractTransfer\logs\info-%d{yyyy-MM-dd}.log</fileNamePattern>-->
-<!--            &lt;!&ndash; Хранить только последние 3 дня &ndash;&gt;-->
-<!--            <maxHistory>7</maxHistory>-->
-<!--        </rollingPolicy>-->
-<!--        <encoder>-->
-<!--            <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>-->
-<!--        </encoder>-->
-<!--    </appender>-->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>C:\ContractTransfer\info.log</file>
+        <file>${LOG_FILE_PATH}/${LOG_FILE_NAME}</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Формат имени ротированного файла -->
-            <fileNamePattern>C:\ContractTransfer\logs\info-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_FILE_PATH}/logs/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
             <!-- Хранить только последние 7 дней -->
-            <maxHistory>7</maxHistory>
+            <maxHistory>${LOG_MAX_HISTORY}</maxHistory>
         </rollingPolicy>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
@@ -42,7 +35,7 @@
     </logger>
 
     <!-- Логгер для DBF -->
-    <logger name="com.example.transfer.s02015" level="info">
+    <logger name="${DBF_LOGGER_PACKAGE}" level="info">
         <appender-ref ref="FILE"/> <!-- Запись в info.log -->
     </logger>
 

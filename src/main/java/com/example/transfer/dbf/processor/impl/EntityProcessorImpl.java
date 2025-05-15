@@ -1,10 +1,11 @@
 package com.example.transfer.dbf.processor.impl;
 
 import com.example.transfer.dbf.annotation.StartSql;
+import com.example.transfer.dbf.exception.ProcessException;
 import com.example.transfer.dbf.processor.EntityProcessor;
 import com.example.transfer.dbf.processor.FieldProcessor;
 import com.example.transfer.dbf.processor.ProcessorRegistry;
-import com.example.transfer.dbf.exception.ProcessException;
+import com.example.transfer.dbf.service.EntityValidationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -27,13 +28,12 @@ import java.util.Map;
 public class EntityProcessorImpl implements EntityProcessor {
 
     private final Map<String, Connection> connectionPool = new HashMap<>();
-
     private final Map<Class<?>, Map<Annotation, Field>> annotationCache = new HashMap<>();
 
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
-
     private final ProcessorRegistry processorRegistry;
+    private final EntityValidationService entityValidationService;
 
     @Value("${spring.datasource.url}")
     public String DB_URL;
@@ -41,6 +41,7 @@ public class EntityProcessorImpl implements EntityProcessor {
     @Override
     public <T> void processEntities(List<T> entities) {
         try {
+            entityValidationService.validateEntities(entities);
             if (!entities.isEmpty()) {
                 Class<?> clazz = entities.get(0).getClass();
                 executeStartSqlAnnotations(clazz);
@@ -50,6 +51,8 @@ public class EntityProcessorImpl implements EntityProcessor {
             for (T entity : entities) {
                 processEntity(entity, sortedProcessors);
             }
+
+
         } finally {
             closeAllConnections();
         }
@@ -64,7 +67,7 @@ public class EntityProcessorImpl implements EntityProcessor {
                     try {
                         jdbcTemplate.update(sql, new MapSqlParameterSource());
                     } catch (Exception e) {
-                        throw new ProcessException("Ошибка при выполнении SQL-запроса: " + e.getMessage());
+                        throw new ProcessException("Ошибка при выполнении SQL-запроса: " + sql);
                     }
                 }
             }
@@ -88,8 +91,7 @@ public class EntityProcessorImpl implements EntityProcessor {
                         } else {
                             field.set(entity, processor.process(field, entity));
                         }
-                    } catch (IllegalAccessException | SQLException | NoSuchMethodException |
-                             InvocationTargetException e) {
+                    } catch (IllegalAccessException e) {
                         throw new ProcessException(e.getMessage());
                     }
                 }
@@ -115,8 +117,7 @@ public class EntityProcessorImpl implements EntityProcessor {
         return fieldAnnotations;
     }
 
-    private Connection getConnectionForAnnotation(Annotation annotation)
-            throws SQLException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    private Connection getConnectionForAnnotation(Annotation annotation) {
         String annotationName = annotation.annotationType().getName();
 
         if (connectionPool.containsKey(annotationName)) {
@@ -132,22 +133,28 @@ public class EntityProcessorImpl implements EntityProcessor {
         return null;
     }
 
-    private boolean requiresDatabaseConnection(Annotation annotation)
-            throws InvocationTargetException, IllegalAccessException {
+    private boolean requiresDatabaseConnection(Annotation annotation) {
         try {
             String username = getAnnotationValue(annotation, "username");
             String password = getAnnotationValue(annotation, "password");
             return !username.isEmpty() && !password.isEmpty();
-        } catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             return false;
         }
     }
 
-    private Connection createConnection(Annotation annotation)
-            throws SQLException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        String username = getAnnotationValue(annotation, "username");
-        String password = getAnnotationValue(annotation, "password");
-        return DriverManager.getConnection(DB_URL, username, password);
+    private Connection createConnection(Annotation annotation) {
+            String username = null;
+            String password = null;
+        try {
+            username = getAnnotationValue(annotation, "username");
+            password = getAnnotationValue(annotation, "password");
+            return DriverManager.getConnection(DB_URL, username, password);
+        } catch (SQLException e) {
+            throw new ProcessException("Не удалось подключиться к базе. Логин: " + username + "; Пароль: " + password);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new ProcessException("Что-то не так с аннотацией: " + annotation);
+        }
     }
 
     private String getAnnotationValue(Annotation annotation, String parameterName)

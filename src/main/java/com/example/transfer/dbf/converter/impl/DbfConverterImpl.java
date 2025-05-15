@@ -39,6 +39,9 @@ public class DbfConverterImpl implements DbfConverter {
     @Value("${local.cache.path}")
     private String localCachePath;
 
+    @Value("${dbf.default.source.path}")
+    private String dbfDefaultSourcePath;
+
     @Override
     public <T> List<T> convert(Class<T> entityClass) {
         if (!entityClass.isAnnotationPresent(DbfSource.class)) {
@@ -54,6 +57,8 @@ public class DbfConverterImpl implements DbfConverter {
         for (Map<String, Object> dbfRow : dbfRows) {
             try {
                 entities.add(createEntityFromDbf(entityClass, dbfRow, dbfColumns));
+            } catch (DbfConverterException e) {
+                throw new DbfConverterException(e.getMessage(), e);
             } catch (Exception e) {
                 throw new DbfConverterException("Ошибка при преобразовании строки данных: " + e.getMessage(), e);
             }
@@ -64,7 +69,7 @@ public class DbfConverterImpl implements DbfConverter {
 
     private <T> DbfTable getDbfTable(Class<T> entityClass) {
         DbfSource annotation = entityClass.getAnnotation(DbfSource.class);
-        String dbfPath = annotation.path() + annotation.value();
+        String dbfPath = generateDbfFilePath(annotation.path()) + annotation.value();
 
         if (annotation.useLocalCache()) {
             String localCacheFilePath = localCachePath + annotation.value();
@@ -75,8 +80,15 @@ public class DbfConverterImpl implements DbfConverter {
         try {
             return dbfDataExtractor.extract(dbfPath);
         } catch (Exception e) {
-            throw new DbfConverterException("Ошибка при чтении файла " + dbfPath + ": " + e.getMessage(), e);
+            throw new DbfConverterException("Ошибка при чтении файла " + ": " + dbfPath, e);
         }
+    }
+
+    private String generateDbfFilePath(String path) {
+        if (path.isEmpty()) {
+            return dbfDefaultSourcePath;
+        }
+        return path;
     }
 
     private void copyToLocalCache(String sourcePath, String destinationPath) {
@@ -84,7 +96,7 @@ public class DbfConverterImpl implements DbfConverter {
             Files.createDirectories(Paths.get(localCachePath));
             Files.copy(Paths.get(sourcePath), Paths.get(destinationPath), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new DbfConverterException("Ошибка при копировании файла с сетевого диска: " + e.getMessage(), e);
+            throw new DbfConverterException("Ошибка при копировании файла с сетевого диска: " + sourcePath, e);
         }
     }
 
@@ -112,7 +124,7 @@ public class DbfConverterImpl implements DbfConverter {
                 try {
                     field.set(entity, convertValue(field, dbfRow.get(dbfFieldName)));
                 } catch (IllegalArgumentException e) {
-                    throw new DbfConverterException("Ошибка при преобразовании значения для поля '" + field.getName() + "': " + e.getMessage(), e);
+                    throw new DbfConverterException("Ошибка при преобразовании значения для поля:" + field.getName(), e);
                 }
             }
         }

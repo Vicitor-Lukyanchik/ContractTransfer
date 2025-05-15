@@ -5,6 +5,7 @@ import com.example.transfer.dbf.annotation.DbfSource;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @Entity
@@ -20,10 +21,12 @@ public class PackType {
     @Id
     @Column(name = "tpack_id")
     @DbfField("PACK_ID")
+    @NotNull(message = "(Oracle: tpack_id) не может быть null")
     private Long tpackId;
 
     @Column(name = "tpack_name")
     @DbfField("PACK_NAIM")
+    @NotNull(message = "(Oracle: tpack_name) не может быть null")
     private String tpackName;
 
     @Override

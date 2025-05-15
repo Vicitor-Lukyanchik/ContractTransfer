@@ -2,7 +2,9 @@ package com.example.transfer.s02015.processor;
 
 import com.example.transfer.dbf.exception.ProcessException;
 import com.example.transfer.dbf.processor.FieldProcessor;
-import com.example.transfer.s02015.annotation.DefaultValue;
+import com.example.transfer.dbf.annotation.DefaultValue;
+import com.example.transfer.dbf.util.ProcessorUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
@@ -10,8 +12,12 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.sql.Connection;
 
+
 @Component
+@RequiredArgsConstructor
 public class DefaultValueProcessor implements FieldProcessor {
+
+    private final ProcessorUtils processorUtils;
 
     @Override
     public boolean supports(Annotation annotation) {
@@ -22,7 +28,7 @@ public class DefaultValueProcessor implements FieldProcessor {
     public Object process(Field field, Object entity, Connection connection) throws IllegalAccessException {
         DefaultValue defaultValue = field.getAnnotation(DefaultValue.class);
         if (defaultValue == null) {
-            throw new ProcessException("Annotation @DefaultValue not found on field: " + field.getName());
+            throw new ProcessException("Аннотация не найдена в поле: " + field.getName());
         }
 
         field.setAccessible(true);
@@ -41,13 +47,10 @@ public class DefaultValueProcessor implements FieldProcessor {
             field.set(entity, defaultValueParsed); // Устанавливаем значение по умолчанию
             return defaultValueParsed;
         } catch (Exception e) {
-            throw new ProcessException("Failed to parse default value for field: " + field.getName(), e);
+            throw new ProcessException(processorUtils.buildErrorMessage(entity, field, "Не удалось установить значение по умолчанию для поля:" + field.getName() + "=" + field.get(entity) + ". " + e.getMessage()), e);
         }
     }
 
-    /**
-     * Преобразует строковое значение в соответствующий тип данных поля.
-     */
     private Object parseDefaultValue(Class<?> fieldType, String value) {
         if (fieldType == Integer.class || fieldType == int.class) {
             return Integer.parseInt(value);
@@ -64,7 +67,7 @@ public class DefaultValueProcessor implements FieldProcessor {
         } else if (fieldType == BigDecimal.class) {
             return new BigDecimal(value);
         } else {
-            throw new ProcessException("Unsupported field type: " + fieldType.getName());
+            throw new ProcessException("Неподдерживаемый тип поля:" + fieldType.getName());
         }
     }
 }

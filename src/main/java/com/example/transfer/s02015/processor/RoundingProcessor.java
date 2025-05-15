@@ -3,7 +3,9 @@ package com.example.transfer.s02015.processor;
 import com.example.transfer.dbf.annotation.ProcessingOrder;
 import com.example.transfer.dbf.exception.ProcessException;
 import com.example.transfer.dbf.processor.FieldProcessor;
+import com.example.transfer.dbf.util.ProcessorUtils;
 import com.example.transfer.s02015.annotation.RoundTo;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
@@ -14,7 +16,10 @@ import java.sql.Connection;
 
 @Component
 @ProcessingOrder(1)
+@RequiredArgsConstructor
 public class RoundingProcessor implements FieldProcessor {
+
+    private final ProcessorUtils processorUtils;
 
     @Override
     public boolean supports(Annotation annotation) {
@@ -26,9 +31,8 @@ public class RoundingProcessor implements FieldProcessor {
 
         RoundTo roundTo = field.getAnnotation(RoundTo.class);
         if (roundTo == null) {
-            throw new ProcessException("Annotation @RoundTo not found on field: " + field.getName());
+            throw new ProcessException(processorUtils.buildErrorMessage(entity, field,"Аннотация не найдена в поле: " + field.getName() + "=" + field.get(entity)));
         }
-
         field.setAccessible(true);
         Object value = field.get(entity);
 
@@ -37,7 +41,7 @@ public class RoundingProcessor implements FieldProcessor {
             BigDecimal formattedValue = new BigDecimal(roundedValue).setScale(roundTo.value(), RoundingMode.HALF_UP);
             return formattedValue.doubleValue();
         } else if (value != null) {
-            throw new ProcessException("Field must be of type Double or Float: " + field.getName());
+            throw new ProcessException(processorUtils.buildErrorMessage(entity, field,"Поле должно иметь тип Double или Float: " + field.getName() + "="+ field.get(entity)));
         }
 
         return null;

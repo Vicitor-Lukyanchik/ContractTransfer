@@ -560,29 +560,6 @@ public class DbfConverterImplTest {
         assertTrue(result.isEmpty(), "Result should be an empty list");
     }
 
-    @Test
-    void convert_ShouldThrowException_WhenDbfFileHasDuplicateFieldNames() {
-        List<DbfColumn> columns = new ArrayList<>();
-        columns.add(DbfColumn.builder().name("ID").type("NUMERIC").build());
-        columns.add(DbfColumn.builder().name("ID").type("CHAR").build()); // Дублирующееся имя поля
-
-        List<Map<String, Object>> rows = new ArrayList<>();
-        Map<String, Object> row1 = new HashMap<>();
-        row1.put("ID", "1");
-        row1.put("ID", "Test Name"); // Конфликт значений
-        rows.add(row1);
-
-        DbfTable dbfTable = DbfTable.builder().columns(columns).rows(rows).build();
-
-        when(dbfDataExtractor.extract(anyString())).thenReturn(dbfTable);
-
-        DbfConverterException exception = assertThrows(DbfConverterException.class, () -> {
-            dbfConverter.convert(TestEntity.class);
-        });
-
-        assertTrue(exception.getMessage().contains("Duplicate key ID"),
-                "Exception message should indicate duplicate field names");
-    }
 
     @Test
     void convert_ShouldThrowException_WhenDbfRowHasMismatchedDataCount() {
@@ -647,5 +624,29 @@ public class DbfConverterImplTest {
 
         assertTrue(exception.getMessage().contains("Ошибка при чтении файла"),
                 "Exception message should indicate unsupported DBF version");
+    }
+
+    @Test
+    void convert_ShouldThrowException_WhenDbfFileHasDuplicateFieldNames() {
+        List<DbfColumn> columns = new ArrayList<>();
+        columns.add(DbfColumn.builder().name("ID").type("NUMERIC").build());
+        columns.add(DbfColumn.builder().name("ID").type("CHAR").build()); // Дублирующееся имя поля
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        Map<String, Object> row1 = new HashMap<>();
+        row1.put("ID", "1");
+        row1.put("ID", "Test Name"); // Конфликт значений
+        rows.add(row1);
+
+        DbfTable dbfTable = DbfTable.builder().columns(columns).rows(rows).build();
+
+        when(dbfDataExtractor.extract(anyString())).thenReturn(dbfTable);
+
+        DbfConverterException exception = assertThrows(DbfConverterException.class, () -> {
+            dbfConverter.convert(TestEntity.class);
+        });
+
+        assertTrue(exception.getMessage().contains("Duplicate key ID"),
+                "Exception message should indicate duplicate field names");
     }
 }

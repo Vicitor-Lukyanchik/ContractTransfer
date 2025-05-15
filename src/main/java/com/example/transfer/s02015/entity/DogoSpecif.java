@@ -1,13 +1,14 @@
 package com.example.transfer.s02015.entity;
 
 import com.example.transfer.dbf.annotation.*;
-import com.example.transfer.s02015.annotation.DefaultValue;
+import com.example.transfer.dbf.annotation.DefaultValue;
 import lombok.*;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.sql.Date;
 import java.util.Objects;
 
@@ -25,11 +26,13 @@ public class DogoSpecif {
 
     @Column(name = "dog_id")
     @DbfField("S_KD")
+    @NotNull(message = "(Oracle: dog_id) Номер договора в спецификации не может быть null")
     private Long dogId;
 
     @Id
     @Column(name = "specif_id")
     @DbfField("S_ID")
+    @NotNull(message = "(Oracle: specif_id) Номер спецификации не может быть null")
     private Long specifId;
 
     @Column(name = "specif_ns")

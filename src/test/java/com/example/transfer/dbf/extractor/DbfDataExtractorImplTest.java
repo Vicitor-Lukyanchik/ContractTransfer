@@ -53,7 +53,7 @@ class DbfDataExtractorImplTest {
         String invalidFilePath = "nonexistent.dbf";
 
         DbfException exception = assertThrows(DbfException.class, () -> dbfDataExtractor.extract(invalidFilePath));
-        assertTrue(exception.getMessage().contains("Ошибка при чтении файла: " + invalidFilePath),
+        assertTrue(exception.getMessage().contains("Ошибка при чтении файла"),
                 "Exception message should indicate file not found");
     }
 

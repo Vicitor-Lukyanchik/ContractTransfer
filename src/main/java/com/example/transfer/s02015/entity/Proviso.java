@@ -7,6 +7,7 @@ import com.example.transfer.dbf.annotation.MigrationOrder;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.sql.Date;
 import java.util.Objects;
 
@@ -23,10 +24,12 @@ public class Proviso {
     @Id
     @Column(name = "prov_id")
     @DbfField("ID_OPL")
+    @NotNull(message = "(Oracle: prov_id) не может быть null")
     private Long provId;
 
     @Column(name = "dog_id")
     @DbfField("D_KD")
+    @NotNull(message = "(Oracle: dog_id) не может быть null")
     private Long dogId;
 
     @Column(name = "rasch_id")
