@@ -1,0 +1,88 @@
+\documentclass[11pt,a4paper,sans]{moderncv}
+
+% Стиль и цвет
+\moderncvstyle{classic}
+\moderncvcolor{blue}
+
+% Шрифты
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% Поля
+\usepackage[scale=0.85]{geometry}
+
+% Доп. пакеты
+\usepackage{multicol}
+\usepackage{enumitem}
+
+% Личная информация
+\name{Victor}{Lukyanchik}
+\title{Java Developer}
+\address{Minsk, Belarus}{}{}
+\phone[mobile]{+375~33~634~4224}
+\email{victorlukyanchik15@gmail.com}
+\homepage{linkedin.com/in/vicitor-luk}
+\social[github]{Vicitor-Lukyanchik}
+
+\begin{document}
+
+\makecvtitle
+
+% Summary
+\section{Profile}
+Detail-oriented and collaborative Java Developer with 2+ years of experience in backend and full-stack development. Skilled in building scalable web applications using Java, Spring Boot, and relational databases. Proven ability to contribute to both frontend and backend tasks, data migration, and UI/UX design. Seeking to bring clean code and user-focused features to modern software teams.
+
+% Experience
+\section{Experience}
+\cventry{Aug 2022 -- Present}{Java Developer}{Atlant}{Minsk}{}{
+\begin{itemize}[leftmargin=*,noitemsep]
+    \item Built a system for the Customs Committee using Spring Boot and Oracle.
+    \item Designed UI in Figma and implemented with HTML/CSS/JS.
+    \item Developed a data migrator from DBF (DOS) to modern relational databases.
+\end{itemize}
+}
+
+\cventry{Oct 2022 -- Feb 2023}{Java Intern}{TechinLab}{}{}{
+\begin{itemize}[leftmargin=*,noitemsep]
+    \item Optimized complex SQL queries and integrated them with Spring MVC.
+    \item Participated in bug fixing and feature development in a microservice environment.
+\end{itemize}
+}
+
+\cventry{Feb 2022 -- Jul 2022}{Java Intern}{Senla}{}{}{
+\begin{itemize}[leftmargin=*,noitemsep]
+    \item Learned Java Core, built CRUD applications using Spring.
+    \item Gained experience in Agile workflows and team collaboration.
+\end{itemize}
+}
+
+% Projects
+\section{Projects}
+\cvitem{Data Migrator Tool}{Java CLI tool to migrate legacy DBF data to PostgreSQL.}
+\cvitem{Internal Admin Panel}{Full-stack internal web dashboard with role-based access for document management.}
+
+% Education
+\section{Education}
+\cventry{2019 -- 2023}{BSc in Marketing + Programming}{Baranovichi State University}{}{}{
+Graduated with a focus on programming, databases, and business applications.
+}
+\cvitem{Courses}{Java Development – Foxminded (2021)}
+
+% Skills
+\section{Technical Skills}
+\cvitem{Backend}{Java 8+, Spring Boot, Hibernate, REST API}
+\cvitem{Frontend}{HTML, CSS, JavaScript, Thymeleaf}
+\cvitem{Databases}{Oracle, PostgreSQL, MongoDB}
+\cvitem{Tools}{Git, Docker, Maven, Figma}
+
+% Languages
+\section{Languages}
+\cvitem{English}{B2 – Upper-Intermediate}
+\cvitem{Russian}{C2 – Native}
+
+% Extra
+\section{Additional Info}
+\cvitem{Soft Skills}{Team player, proactive, strong communication}
+\cvitem{Sport}{Candidate Master of Sport in Sambo}
+
+\end{document}

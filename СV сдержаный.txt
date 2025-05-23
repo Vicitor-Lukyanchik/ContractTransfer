@@ -1,0 +1,96 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[left=1cm, right=1cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{titlesec}
+
+% --- Цвета ---
+\definecolor{accent}{RGB}{44, 62, 80}  % Темно-синий
+
+% --- Настройка секций ---
+\titleformat{\section}{\large\bfseries\color{accent}}{\thesection}{0.5em}{}[{\titlerule[0.5pt]}]
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+
+% --- Уменьшение отступов в списках ---
+\setlist[itemize]{leftmargin=*, nosep}
+
+% --- Стиль гиперссылок ---
+\hypersetup{
+    colorlinks=true,
+    urlcolor=accent,
+    linkcolor=accent,
+}
+
+\begin{document}
+
+% --- Шапка резюме ---
+\begin{center}
+    {\Huge\bfseries Victor Lukyanchik} \\[4pt]
+    {\large \textbf{Java Developer}} \\[8pt]
+    \href{mailto:victorlukyanchik15@gmail.com}{victorlukyanchik15@gmail.com} | +375 (33) 634-42-24 \\
+    \href{https://linkedin.com/in/vicitor-luk}{linkedin.com/in/vicitor-luk} | \href{https://github.com/Vicitor-Lukyanchik}{github.com/Vicitor-Lukyanchik} \\
+    Minsk, Belarus
+\end{center}
+
+% --- О себе ---
+\section*{Summary}
+Full-stack Java developer with 2+ years of experience in Spring Boot, REST APIs, and database optimization. Strong expertise in backend development, UI design (Figma), and data migration tools. Passionate about clean code and efficient solutions. Team player with excellent communication skills.
+
+% --- Опыт работы ---
+\section*{Work Experience}
+\subsection*{Java Developer @ Atlant \hfill \textit{Aug 2022 – Present}}
+\begin{itemize}
+    \item Developed a \textbf{customs tracking system} using Spring Boot, Oracle DB, and JavaScript (HTML/CSS frontend).
+    \item Designed UI in Figma and implemented responsive web interfaces.
+    \item Built a \textbf{data migration tool} for legacy DBF (DOS) > modern databases (Swing + Spring Boot).
+    \item Maintained and optimized enterprise applications.
+\end{itemize}
+
+\subsection*{Java Trainee @ TechinLab \hfill \textit{Oct 2022 – Feb 2023}}
+\begin{itemize}
+    \item Optimized SQL queries, improving performance by \textbf{30\%}.
+    \item Developed REST APIs using Spring MVC.
+\end{itemize}
+
+\subsection*{Java Intern @ Senla \hfill \textit{Feb 2022 – Jul 2022}}
+\begin{itemize}
+    \item Learned core Java (OOP, Collections, Multithreading).
+    \item Built CRUD applications with Spring Data JPA + MySQL.
+\end{itemize}
+
+% --- Навыки ---
+\section*{Technical Skills}
+\begin{itemize}
+    \item \textbf{Languages:} Java 8+, SQL, JavaScript
+    \item \textbf{Frameworks:} Spring Boot, Hibernate, Lombok, Thymeleaf
+    \item \textbf{Databases:} Oracle, PostgreSQL, MongoDB, Liquibase
+    \item \textbf{Tools:} Git, Docker, Maven, Figma, Jira
+    \item \textbf{Testing:} JUnit, Mockito
+\end{itemize}
+
+% --- Образование ---
+\section*{Education}
+\subsection*{Baranovichi State University \hfill \textit{2019–2023}}
+\begin{itemize}
+    \item Bachelor’s degree in \textbf{Marketing \& Programming}.
+\end{itemize}
+
+\subsection*{Foxminded (Java Course) \hfill \textit{2021}}
+\begin{itemize}
+    \item 6-month intensive training in Java development.
+\end{itemize}
+
+% --- Дополнительно ---
+\section*{Additional Info}
+\begin{itemize}
+    \item \textbf{English:} B2 (Upper-Intermediate) | \textbf{Russian:} Native (C2)
+    \item \textbf{Sports:} Candidate Master of Sports in \textbf{Sambo} (ex-competitive athlete).
+    \item \textbf{Soft Skills:} Strong communicator, adaptable, team player.
+\end{itemize}
+
+\end{document}
